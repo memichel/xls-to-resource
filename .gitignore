@@ -1,4 +1,6 @@
 .classpath
 .project
 .settings/
+.idea/
 target/
+xls-to-resources.iml

@@ -1,0 +1,15 @@
+{
+  "outputFileName": "WordingFile",
+  "sheetName": "Wording Sheet",
+  "firstColumnName": "Wording Reference",
+  "resourcesFiles": [
+    {
+      "fileName": "example/string-fr.xml",
+      "columnName": "Version Francaise"
+    },
+    {
+      "fileName": "example/string-en.xml",
+      "columnName": "English version"
+    }
+  ]
+}

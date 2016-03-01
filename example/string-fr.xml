@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="global_confirm">Confirmer</string>
+    <string name="global_validate">Valider</string>
+    <string name="global_cancel">Annuler</string>
+    <string name="global_exit">Quitter l\'application</string>
+    <string name="global_please_wait">Veuillez patienter</string>
+    <string name="global_accept">Continuer</string>
+    <string name="global_settings">Paramètres</string>
+    <string name="global_yes">Oui</string>
+    <string name="global_no">Non</string>
+    <string name="global_close">Fermer</string>
+    <string name="global_reinit">Réinitialiser</string>
+    <string name="global_next_step">Etape suivante</string>
+    <string name="global_confirmation">Confirmation :</string>
+    <string name="global_modify">Modifier</string>
+
+</resources>
