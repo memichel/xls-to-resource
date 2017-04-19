@@ -34,7 +34,7 @@
 		  <configuration>
 			<archive>
 			  <manifest>
-				<mainClass>com.hotcocoacup.mobiletools.xlstoresouces.XlsToResources</mainClass>
+				<mainClass>com.hotcocoacup.mobiletools.xlstoresouces.ConverterMain</mainClass>
 				<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 			  </manifest>
 			</archive>

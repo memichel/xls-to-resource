@@ -1,19 +1,16 @@
 package com.hotcocoacup.mobiletools.xlstoresouces;
 
+import com.hotcocoacup.mobiletools.xlstoresouces.model.KeyValuePair;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-
-import com.hotcocoacup.mobiletools.xlstoresouces.model.KeyValuePair;
 
 public class AndroidProcessor implements Processor {
 
-	Pattern escapeLT = Pattern.compile("(<(?!u>|b>|i>|\\/u>|\\/b>|\\/i>))");
-	
 	public void process(Writer output,
 			Map<String, List<KeyValuePair>> keyValuePair) throws IOException {
 		
@@ -47,7 +44,7 @@ public class AndroidProcessor implements Processor {
 				value = value.replace("\"", "\\\"");
 				value = value.replace("'", "\\'");
 				value = value.replace("&", "&amp;");
-				value = escapeLT.matcher(value).replaceAll("&lt;");
+				value = value.replace("<", "&lt;");
 				
 				output.write(value);
 				output.write("</string>\n");

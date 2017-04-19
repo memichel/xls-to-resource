@@ -1,47 +1,23 @@
 package com.hotcocoacup.mobiletools.xlstoresouces;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.poi.hssf.util.CellReference;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellValue;
-import org.apache.poi.ss.usermodel.FormulaEvaluator;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-import com.hotcocoacup.mobiletools.xlstoresouces.AndroidProcessor;
-import com.hotcocoacup.mobiletools.xlstoresouces.IosProcessor;
-import com.hotcocoacup.mobiletools.xlstoresouces.Processor;
 import com.hotcocoacup.mobiletools.xlstoresouces.model.Entry;
 import com.hotcocoacup.mobiletools.xlstoresouces.model.KeyValuePair;
+import org.apache.commons.cli.CommandLine;
+import org.apache.poi.hssf.util.CellReference;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.*;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class XlsToResources {
 
@@ -49,65 +25,8 @@ public class XlsToResources {
 	public static final String LOGGER_NAME = "XlsToResources";
 
 	private static Logger logger = Logger.getLogger(LOGGER_NAME);
-	private static Options options = new Options();
 
-	public static void main(String[] args) {
-
-		// Setting up the logger
-		logger.setLevel(Level.INFO);
-		logger.setUseParentHandlers(false);
-
-		LogFormatter formatter = new LogFormatter();
-		ConsoleHandler handler = new ConsoleHandler();
-		handler.setFormatter(formatter);
-		logger.addHandler(handler);
-
-		// Parsing the user inputs
-		options.addOption("h", "help", false, "Print the help.");
-		options.addOption("v", "version", false, "Print the current version.");
-		options.addOption("c", "config", true, "The configuration file");
-		options.addOption("a", "android", true,
-				"The android resouce filename to export");
-		options.addOption("i", "ios", true,
-				"The iOS resource filename to export");
-		options.addOption(new Option("expandgroupby", false, 
-				"If a groupBy column exists, and the cell is empty, it will copy the value of the previous cells"));
-
-		CommandLineParser parser = new BasicParser();
-		CommandLine cmd = null;
-
-		try {
-			cmd = parser.parse(options, args);
-		} catch (ParseException e) {
-			logger.log(Level.SEVERE, "Failed to parse command line properties",
-					e);
-			help();
-			return;
-		}
-
-		// user asked for help...
-		if (cmd.hasOption('h')) {
-			help();
-			return;
-		}
-		
-		// user asked for version
-		if (cmd.hasOption('v')) {
-			printVersion();
-			return;
-		}
-
-		// extracting the configuration filename
-		String configFileName;
-		if (cmd.hasOption('c')) {
-			configFileName = cmd.getOptionValue('c');
-		} else {
-			logger.severe("You must input the configurationFilename");
-			help();
-			return;
-		}
-		
-		boolean expandGroupby = cmd.hasOption("expandgroupby");
+	public void parse(String configFileName, CommandLine cmd) {
 
 		logger.info("Reading configuration file " + configFileName);
 		File file = new File(configFileName);
@@ -189,8 +108,6 @@ public class XlsToResources {
 							entry.getRowEnd() - 1);
 				}
 			}
-			
-			String lastGroupbyValue = null;
 
 			// processing all the rows of the file
 			for (int i = entry.getRowStart() - 1; i <= rowEnd; i++) {
@@ -232,22 +149,16 @@ public class XlsToResources {
 				if (entry.getGroupBy() != null) {
 					Cell groupByCell = row.getCell(new CellReference(entry.getGroupBy()).getCol());
 
-					if (groupByCell != null && !groupByCell.getStringCellValue().isEmpty()) {
+					if (groupByCell != null) {
 						groupBy = groupByCell.getStringCellValue();
-						lastGroupbyValue = groupBy;
 					} else {
-						
-						if (expandGroupby && lastGroupbyValue != null && !lastGroupbyValue.isEmpty()) {
-							groupBy = lastGroupbyValue;
-						} else {
-						
-							logger.log( Level.WARNING,
-									"GroupBy column "
-											+ entry.getGroupBy()
-											+ " (row "
-											+ (i + 1)
-											+ ") does not exist. GroupBy set to default.");
-						}
+						logger.log(
+								Level.WARNING,
+								"GroupBy column "
+										+ entry.getGroupBy()
+										+ " (row "
+										+ (i + 1)
+										+ ") does not exist. GroupBy set to default.");
 					}
 				}
 
@@ -339,34 +250,6 @@ public class XlsToResources {
 		}
 
 		list.add(keyValue);
-	}
-
-	private static void help() {
-		HelpFormatter formater = new HelpFormatter();
-		formater.printHelp("Main", options);
-
-		System.out.println("\nFormat of the Configuration file:");
-		System.out.println("[");
-		System.out.println("     {");
-		System.out.println("         \"fileName\": (string) \"xls or xlsx file containing the wording. Mandatory.\",");
-		System.out.println("         \"sheet\": (int) \"index of the sheet concerned. 0=first sheet. Default=0\", ");
-		System.out.println("         \"rowStart\": (int) \"index of the starting row. 1=first row. Default=1\", ");
-		System.out.println("         \"rowEnd\": (int) \"index of the last row. 1=first row. -1=all rows. Default=-1\", ");
-		System.out.println("         \"columnKey\": (String) \"letter of the column containing the key. . Default='A'\", ");
-		System.out.println("         \"columnValue\": (String) \"letter of the column containing the value. Default='B'\", ");
-		System.out.println("         \"groupBy\": (String) \"letter of the column containing the group value. null=Do not group. Default=null\", ");
-		System.out.println("     }, ...");
-		System.out.println("]");
-		System.out.println("");
-		System.out.println("Example of how to use:");
-		System.out.println("java -jar xlsToResource.jar -c config.json -a string.xml -i sample.strings");
-		
-		System.exit(0);
-
-	}
-	
-	private static void printVersion() {
-		System.out.println("V" + VERSION);
 	}
 
 }
